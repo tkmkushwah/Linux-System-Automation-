@@ -49,3 +49,21 @@ sudo usermod -a -G ${username}_group $username
 echo "User $username created and added to group ${username}_group."
 
 fi
+#================Log Rotation====================
+# Log Rotation
+echo "Rotating log files..."
+#find and remove all log file mtime>30 days
+    sudo find /var/log/*.log -mtime +30  -exec echo -e "${RED}would delete${RESET}:" {} \;
+# name log uniquely file and add all files to archive
+sudo tar -czvf /var/log/logs_backup_$(date +%F).tar.gz -c /var/log/*.log
+echo "log rotation and backup completed successfully!"
+
+#===================Automated Backup==============
+echo "Automating backup of directories..."
+mkdir -p /home/user/data/
+sudo chown -R $USER:$USER /home/user/data/
+source_dir="/home/user/data"
+backup_dir="/home/user/backups"
+timestamp=$(date +%F)
+sudo mkdir -p $backup_dir/$timestamp
+cp -r $source_dir/* $backup_dir/$timestamp/
