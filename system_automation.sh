@@ -27,3 +27,25 @@ df -h
 echo -e "${RED}system uptime${RESET}"
 uptime
 
+#==============User Management===============
+echo -e "${GREEN}enter username to create a new user:${RESET}"
+read username
+# check if user already exist
+if id "$username" &>/dev/null; then
+    echo "User $username already exists!"
+else
+    sudo useradd $username
+    sudo passwd  $username
+
+    #check if group already exists
+    if getent group "${username}_group" &>/dev/null; then
+      echo "Group ${username}_group already exsists"
+    else
+    #create group
+    sudo groupadd ${username}_group
+    fi
+
+sudo usermod -a -G ${username}_group $username
+echo "User $username created and added to group ${username}_group."
+
+fi
