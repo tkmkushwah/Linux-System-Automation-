@@ -67,3 +67,19 @@ backup_dir="/home/user/backups"
 timestamp=$(date +%F)
 sudo mkdir -p $backup_dir/$timestamp
 cp -r $source_dir/* $backup_dir/$timestamp/
+
+#===================System health alert============
+# Health Monitoring
+CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')
+MEMORY_USAGE=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
+DISK_USAGE=$(df / | grep / | awk '{ print $5 }' | sed 's/%//g')
+
+if [ $(echo "$CPU_USAGE > 2" | bc) -eq 1 ]; then
+    echo "CPU Usage is above 80%" 
+fi
+if [ $(echo "$MEMORY_USAGE > 1" | bc) -eq 1 ]; then
+    echo "Memory Usage is above 80%"
+fi
+if [ $DISK_USAGE -gt 9 ]; then
+    echo "Disk Usage is above 90%"
+fi
