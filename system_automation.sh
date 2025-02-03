@@ -97,6 +97,33 @@ fi
 #=====================Network monitoring=======================
 network_monitoring(){
 
+
+# Function for port scanning using ss
+port_scan() {
+  echo -e "${YELLOW}Scanning for open ports...${RESET}"
+  ss -tuln  # Displays listening ports and services
+}
+
+# Function for traceroute to a remote server
+traceroute_to_server() {
+  echo -e "${YELLOW}Tracing route to $1...${RESET}"
+   if command -v traceroute &> /dev/null; then
+   traceroute $1
+    else -e "${YELLOW}Error: tracerout command not found please install${RESET}"
+   fi
+}
+
+# Function for DNS lookup
+dns_lookup() {
+  echo -e "${YELLOW}Performing DNS lookup for $1...${RESET}"
+  if command -v nslookup &> /dev/null; then
+  nslookup $1
+else
+  echo "Error: nslookup command not found. Please install dnsutils or bind-utils."
+fi
+}
+
+
 check_network_interface(){
 echo -e "${GREEN}checking network interface${RESET}"
       ip a
@@ -104,7 +131,7 @@ echo -e "${GREEN}checking network interface${RESET}"
 
 #function to config a static IP address
 configure_static_ip(){
-echo "configuring static IP"
+echo -e "${GREEN}configuring static IP${RESET}"
 # Remove existing IP (if assigned)
   sudo ip addr del 192.168.1.100/24 dev eth0 2>/dev/null
 
@@ -114,13 +141,76 @@ sudo ip link set eth0 up  || "failed to bring up interface"
 }
 #function to ping server
 ping_server(){
-echo "Pinging server $1...."
+echo -e "${GREEN}Pinging server $1....${RESET}"
 ping -c 4 $1
 }
 check_network_interface
 configure_static_ip
 ping_server 192.168.1.100
+port_scan
+traceroute_to_server "google.com"
+dns_lookup "gmail.com"
 }
+
+#=======================Managing firewall rules========================
+managing_firewall(){
+
+# Function to check firewall status
+check_firewall_status() {
+  echo -e "${YELLOW}Checking firewall status...${RESET}"
+  sudo ufw status
+}
+
+# Function to allow a port (e.g., HTTP)
+allow_http_port() {
+  echo -e "${YELLOW}Allowing HTTP (Port 80)...${RESET}"
+  sudo ufw allow 80/tcp      # Allow HTTP
+  sudo ufw allow 443  # Allow HTTPS
+}
+
+# Function to deny a port (e.g., FTP)
+deny_ftp_port() {
+  echo -e "${YELLOW} Denying FTP (Port 21)...${RESET}"
+  sudo ufw deny 21/tcp
+}
+
+# Main script execution
+check_firewall_status
+allow_http_port
+deny_ftp_port
+check_firewall_status
+}
+
+
+#=============================VPN Configuration====================
+# Function to connect to VPN
+connect_vpn() {
+  echo "Connecting to VPN..."
+ if command -v openvpn &> /dev/null; then
+  sudo apt update && sudo apt install openvpn -y
+  sudo openvpn --config /src/openvpn/config.ovpn &
+  fi
+}
+
+# Function to check VPN status
+check_vpn_status() {
+  echo "Checking VPN status..."
+#ps aux:
+#This command lists all the processes currently running on the system
+#The | (pipe) sends the output of ps aux to grep, which searches for the string "openvpn" in the process list
+#> /dev/null:redirects the output of the grep command to /dev/null, which essentially discards it.  
+if ps aux | grep "openvpn" > /dev/null; then
+    echo "VPN is connected."
+  else
+    echo "VPN is not connected."
+  fi
+}
+
+# Main script execution
+connect_vpn
+sleep 5  # Allow time for VPN connection
+check_vpn_status
+
 #main script execution
 echo "choose an option:"
 echo "1. Create files and directories"
@@ -131,6 +221,7 @@ echo "5. automated backup"
 echo "6. system health"
 echo "7. check network interface"
 echo "8. Network monitoring"
+echo "9. Manage Firewall"
 read choice
 case $choice in
 1)
@@ -156,6 +247,9 @@ check_network_interface
 ;;
 8)
 network_monitoring
+;;
+9)
+managing_firewall
 ;;
 *)
 echo "invalig choice. exiting"
