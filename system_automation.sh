@@ -94,9 +94,33 @@ if [ $DISK_USAGE -gt 9 ]; then
     echo "Disk Usage is above 90%"
 fi
 }
-#=====================Advance file oprations=======================
+#=====================Network monitoring=======================
+network_monitoring(){
 
+check_network_interface(){
+echo -e "${GREEN}checking network interface${RESET}"
+      ip a
+}
 
+#function to config a static IP address
+configure_static_ip(){
+echo "configuring static IP"
+# Remove existing IP (if assigned)
+  sudo ip addr del 192.168.1.100/24 dev eth0 2>/dev/null
+
+# Assign the new static IP
+sudo ip addr add 192.168.1.100/24 dev eth0
+sudo ip link set eth0 up  || "failed to bring up interface"
+}
+#function to ping server
+ping_server(){
+echo "Pinging server $1...."
+ping -c 4 $1
+}
+check_network_interface
+configure_static_ip
+ping_server 192.168.1.100
+}
 #main script execution
 echo "choose an option:"
 echo "1. Create files and directories"
@@ -105,6 +129,8 @@ echo "3. Create user"
 echo "4. Log rotation"
 echo "5. automated backup"
 echo "6. system health"
+echo "7. check network interface"
+echo "8. Network monitoring"
 read choice
 case $choice in
 1)
@@ -124,6 +150,12 @@ log_rotation
 ;;
 6)
 system_health
+;;
+7)
+check_network_interface
+;;
+8)
+network_monitoring
 ;;
 *)
 echo "invalig choice. exiting"
