@@ -10,13 +10,17 @@ RESET='\033[0m'  # Reset color to default
 echo "hello, world!"
 
 #File and Directory Operations
+create_files(){
+
 echo "creating files and directiories"
 touch file1.txt file2.txt
 echo "this is file1" >file1.txt
 mkdir test_dir
 echo "this is a directory" > test_dir/info.txt
+}
 
-#system info 
+#system info
+gather_system_info(){
 echo -e "${RED}Gathering system information.${RESET}"
 echo "CPU info:"
 lscpu
@@ -26,8 +30,9 @@ echo -e "${RED}disc usage:${RESET}"
 df -h
 echo -e "${RED}system uptime${RESET}"
 uptime
-
+}
 #==============User Management===============
+create_user(){
 echo -e "${GREEN}enter username to create a new user:${RESET}"
 read username
 # check if user already exist
@@ -49,7 +54,10 @@ sudo usermod -a -G ${username}_group $username
 echo "User $username created and added to group ${username}_group."
 
 fi
+}
 #================Log Rotation====================
+
+log_rotation(){
 # Log Rotation
 echo "Rotating log files..."
 #find and remove all log file mtime>30 days
@@ -57,8 +65,9 @@ echo "Rotating log files..."
 # name log uniquely file and add all files to archive
 sudo tar -czvf /var/log/logs_backup_$(date +%F).tar.gz -c /var/log/*.log
 echo "log rotation and backup completed successfully!"
-
+}
 #===================Automated Backup==============
+automated_backup(){
 echo "Automating backup of directories..."
 mkdir -p /home/user/data/
 sudo chown -R $USER:$USER /home/user/data/
@@ -67,8 +76,9 @@ backup_dir="/home/user/backups"
 timestamp=$(date +%F)
 sudo mkdir -p $backup_dir/$timestamp
 cp -r $source_dir/* $backup_dir/$timestamp/
-
+}
 #===================System health alert============
+system_health(){
 # Health Monitoring
 CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')
 MEMORY_USAGE=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
@@ -83,3 +93,40 @@ fi
 if [ $DISK_USAGE -gt 9 ]; then
     echo "Disk Usage is above 90%"
 fi
+}
+#=====================Advance file oprations=======================
+
+
+#main script execution
+echo "choose an option:"
+echo "1. Create files and directories"
+echo "2. Gather system information"
+echo "3. Create user"
+echo "4. Log rotation"
+echo "5. automated backup"
+echo "6. system health"
+read choice
+case $choice in
+1)
+create_files
+;;
+2)
+gather_system_info
+;;
+3)
+create_user
+;;
+4)
+log_rotation
+;;
+5)
+#automated_backup
+;;
+6)
+system_health
+;;
+*)
+echo "invalig choice. exiting"
+exit 1
+;;
+esac
